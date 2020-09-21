@@ -1,28 +1,36 @@
 import flask
-from flask import request
+from flask import request,jsonify
+from flask_cors import CORS, cross_origin
 import numpy as np
+import json
 from tensorflow.keras.models import load_model
 
 # instantiate flask
 app = flask.Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 with open("dataset.txt", 'r', encoding='utf-8') as f:
     data_1 = f.read().lower()
 
+response = " "
 
+@cross_origin()
 @app.route("/")
 def hello():
     return "hello"
 
 
 # define a predict function as an endpoint
+@cross_origin()
 @app.route("/predict", methods=["GET","POST"])
 def predict():
     # print(data)
-    text = " "
-    content = request.get_json(silent=True)
-    # print(content)
-    x = content["text"]
+    global response
+    request_data = request.data
+    request_data = json.loads(request_data.decode('utf-8'))
+    x = request_data['text']
+    print(x)
     maxlen = 45
     chars = sorted(list(set(data_1)))
     char_indices = dict((char, chars.index(char)) for char in chars)
@@ -55,7 +63,7 @@ def predict():
         print(next_char,end = " ")
 
 
-    return {"sonnet" : x}
+    return jsonify({'poem': x})
 
 # # start the flask app, allow remote connections
 if __name__ == '__main__':
